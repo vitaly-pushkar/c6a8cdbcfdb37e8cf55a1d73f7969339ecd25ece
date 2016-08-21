@@ -1,5 +1,5 @@
 (defproject rpam "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
+  :description "Simple ad delivery"
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [clj-time "0.11.0"] ; required due to bug in `lein-ring uberwar`
                  [metosin/compojure-api "1.1.1"]]
