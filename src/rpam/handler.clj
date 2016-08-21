@@ -17,6 +17,12 @@
   (let [code (if (empty? results) "No Content" "OK")]
     {:code code :data (format-result-data results)}))
 
+(defn update-channel-counter [ad channel]
+  (let [index (some (fn [[i m]] (when (= (:id ad) (:id m)) i))
+                (map-indexed vector @repo/ads))]
+    (when index (swap! repo/ads #(update-in % [index :views channel] dec)))))
+
+
 (def app
   (api
     {:swagger {:ui "/"
@@ -29,7 +35,9 @@
         :summary "single specific ad"
 
         (ok (let [result (repo/find-ads channel id)]
-              (prepare-response result))))
+              (do
+                (update-channel-counter result channel)
+                (prepare-response result)))))
 
       (GET "/ads/:channel/:country/:language" []
         :path-params [channel :- channels,
@@ -38,4 +46,6 @@
         :summary "list of available ads"
 
         (ok (let [results (repo/find-ads channel country language)]
-              (prepare-response results))))))
+              (do
+                (map #(update-channel-counter % channel) results)
+                (prepare-response results)))))))
