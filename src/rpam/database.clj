@@ -1,4 +1,4 @@
-(ns redpineapple.database
+(ns rpam.database
   (:require [clj-time.core :as t]))
 
 (def ads

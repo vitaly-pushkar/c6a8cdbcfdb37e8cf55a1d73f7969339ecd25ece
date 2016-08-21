@@ -1,35 +1,28 @@
 (ns rpam.handler
   (:require [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
-            [schema.core :as s]))
+            [schema.core :as s]
+            [rpam.repository :as repo]))
 
-(s/defschema Pizza
-  {:name s/Str
-   (s/optional-key :description) s/Str
-   :size (s/enum :L :M :S)
-   :origin {:country (s/enum :FI :PO)
-            :city s/Str}})
+(def channels (s/enum :fashion :cooking :design :health :food))
+
+(defn format-result-data [result]
+  (select-keys result [:id :url]))
+
+(defn prepare-response [results]
+  (let [code (if (empty? results) "No Content" "OK")]
+    {:code code :data (format-result-data results)}))
 
 (def app
   (api
-    {:swagger
-     {:ui "/"
-      :spec "/swagger.json"
-      :data {:info {:title "Rpam"
-                    :description "Compojure Api example"}
-             :tags [{:name "api", :description "some apis"}]}}}
+    {:swagger {:ui "/"
+               :spec "/swagger.json"
+               :data {:info {:title "Simple Ads APi"}
+                      :tags [{:name "api", :description "ads api"}]}}}
 
-    (context "/api" []
-      :tags ["api"]
+      (GET "/ads/:channel/:id" []
+        :path-params [channel :- channels, id :- Long]
+        :summary "single specific ad"
 
-      (GET "/plus" []
-        :return {:result Long}
-        :query-params [x :- Long, y :- Long]
-        :summary "adds two numbers together"
-        (ok {:result (+ x y)}))
-
-      (POST "/echo" []
-        :return Pizza
-        :body [pizza Pizza]
-        :summary "echoes a Pizza"
-        (ok pizza)))))
+        (ok (let [result (repo/find-ads channel id)]
+              (prepare-response result))))))
